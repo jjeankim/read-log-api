@@ -21,7 +21,7 @@ export const createLog = async (req: UserRequest, res: Response) => {
       },
     });
 
-    res.status(201).json({ data: log });
+    res.status(201).json({ message:"ok",data: log });
   } catch (error) {
     console.error("로그 작성 중 에러:", error);
     res.status(500).json({ message: "서버 내부 오류가 발생했습니다." });
