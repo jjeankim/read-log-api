@@ -4,6 +4,8 @@ import authRouter from "./routes/authRouter";
 import cookieParser from "cookie-parser";
 import prisma from "./lib/prisma";
 import logRouter from "./routes/logRouter";
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 app.use(express.json());
@@ -11,9 +13,7 @@ app.use(cookieParser());
 
 app.use("/auth", authRouter);
 app.use("/users", userRouter);
-app.use("/logs",logRouter);
-
-
+app.use("/logs", logRouter);
 
 app.listen(3000, () => {
   console.log("Server started!");
