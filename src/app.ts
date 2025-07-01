@@ -3,17 +3,17 @@ import userRouter from "./routes/userRouter";
 import authRouter from "./routes/authRouter";
 import cookieParser from "cookie-parser";
 import prisma from "./lib/prisma";
+import logRouter from "./routes/logRouter";
 
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-app.use("/users", userRouter);
 app.use("/auth", authRouter);
+app.use("/users", userRouter);
+app.use("/logs",logRouter);
 
-app.get("/", (req, res) => {
-  console.log("콘솔확인");
-});
+
 
 app.listen(3000, () => {
   console.log("Server started!");

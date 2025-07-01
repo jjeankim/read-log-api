@@ -21,8 +21,10 @@ const authenticate = (req: UserRequest, res: Response, next: NextFunction) => {
         return;
       }
       req.user = decoded as UserRequest["user"];
+      next()
     }
   );
+  
 };
 
 export default authenticate;
