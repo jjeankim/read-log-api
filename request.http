@@ -1,5 +1,12 @@
-GET http://localhost:3000
+GET http://localhost:3000/1
 
 ###
 
-POST http://loclhost:3000
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "email": "f@email.com",
+  "password": "f",
+  "username": "f"
+}

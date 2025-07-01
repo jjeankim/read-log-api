@@ -1,14 +1,26 @@
-import express, { Request, Response } from "express";
-import userRouter from "./routes/userRoute";
+import express from "express";
+import userRouter from "./routes/userRouter";
 import authRouter from "./routes/authRouter";
+import cookieParser from "cookie-parser";
+import prisma from "./lib/prisma";
 
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 
-app.use('/users',userRouter)
-app.use('/auth',authRouter)
+app.use("/users", userRouter);
+app.use("/auth", authRouter);
 
+app.get("/", (req, res) => {
+  console.log("콘솔확인");
+});
 
 app.listen(3000, () => {
   console.log("Server started!");
+});
+
+process.on("SIGINT", async () => {
+  await prisma.$disconnect();
+  console.log("Prisam 연결 종료");
+  process.exit();
 });

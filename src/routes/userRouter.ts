@@ -1,9 +1,10 @@
 import express from "express"
-import { register } from "../controllers/authController";
+import { getUser } from "../controllers/userController";
 
 
 const userRouter = express.Router();
 
+userRouter.get("/:id",getUser)
 
 
 export default userRouter
