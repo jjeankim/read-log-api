@@ -1,10 +1,10 @@
 import express from "express"
-import { getUser } from "../controllers/userController";
+import { getLog } from "../controllers/logController";
 
 
 const userRouter = express.Router();
 
-userRouter.get("/:id",getUser)
+
 
 
 export default userRouter
