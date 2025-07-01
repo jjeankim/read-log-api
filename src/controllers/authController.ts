@@ -58,10 +58,11 @@ export const logout: RequestHandler = (req, res) => {
   res.json({ message: "Logged out" });
 };
 
-export const refreshToken = async (req: Request, res: Response) => {
+export const refreshToken:RequestHandler = async (req, res) => {
   const token = req.cookies.refreshToken;
   if (!token) {
-    return res.status(401).json({ message: "리프레시 토큰이 없습니다." });
+    res.status(401).json({ message: "리프레시 토큰이 없습니다." })
+    return;
   }
 
   try {
@@ -76,7 +77,8 @@ export const refreshToken = async (req: Request, res: Response) => {
     });
 
     if (!user) {
-      return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+      res.status(404).json({ message: "사용자를 찾을 수 없습니다." })
+      return
     }
 
     const { accessToken, refreshToken } = generateToken(user);
