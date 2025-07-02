@@ -1,4 +1,4 @@
-import type { Response, RequestHandler, Request } from "express";
+import type { Response } from "express";
 import prisma from "../lib/prisma";
 import type { UserRequest } from "../types/expressUserRequest";
 import path from "path";
@@ -30,7 +30,6 @@ export const getMe = async (req: UserRequest, res: Response) => {
   }
 };
 
-// 패스워드 수정만 넣은 상태로 이미지 수정도 해야함
 export const updateProfile = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
   if(!userId) {
