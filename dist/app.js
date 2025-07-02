@@ -21,7 +21,12 @@ const logRouter_1 = __importDefault(require("./routes/logRouter"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const commentRouter_1 = __importDefault(require("./routes/commentRouter"));
 dotenv_1.default.config();
+const cors_1 = __importDefault(require("cors"));
 const app = (0, express_1.default)();
+const corsOptions = {
+    origin: ["http://localhost:3000"],
+};
+app.use((0, cors_1.default)(corsOptions));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use((0, cookie_parser_1.default)());
