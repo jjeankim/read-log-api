@@ -49,6 +49,7 @@ export const getLog: RequestHandler = async (req, res) => {
     });
     if (!log) {
       res.status(404).json({ message: "해당 공개 로그를 찾을 수 없습니다." });
+      return;
     }
 
     res.status(200).json({ message: "ok", data: log });

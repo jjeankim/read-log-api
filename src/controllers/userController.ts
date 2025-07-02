@@ -1,13 +1,12 @@
-import type { Response, RequestHandler } from "express";
+import type { Response, RequestHandler, Request } from "express";
 import prisma from "../lib/prisma";
 import type { UserRequest } from "../types/expressUserRequest";
 
 export const getMe = async (req: UserRequest, res: Response) => {
   if (!req.user) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+    return res.status(401).json({ message: "Unauthorized" });
   }
-  
+
   try {
     const user = await prisma.user.findUnique({
       where: {
@@ -16,8 +15,7 @@ export const getMe = async (req: UserRequest, res: Response) => {
     });
 
     if (!user) {
-      res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
-      return;
+      return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
     }
 
     res.status(200).json({ message: "ok", data: user });
@@ -28,7 +26,7 @@ export const getMe = async (req: UserRequest, res: Response) => {
 };
 
 // 패스워드 수정만 넣은 상태로 이미지 수정도 해야함
-export const updateProfile: RequestHandler = async (req, res) => {
+export const updateProfile= async (req:Request, res:Response) => {
   const id = Number(req.params.id);
   const { password } = req.body;
 
@@ -41,8 +39,7 @@ export const updateProfile: RequestHandler = async (req, res) => {
     });
 
     if (!existingUser) {
-      res.status(404).json({ message: "유효하지 않은 사용자입니다." });
-      return;
+      return res.status(404).json({ message: "유효하지 않은 사용자입니다." });
     }
 
     if (password) {

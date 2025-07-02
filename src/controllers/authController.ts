@@ -1,4 +1,4 @@
-import type { RequestHandler } from "express";
+import type { Request, Response, RequestHandler } from "express";
 import prisma from "../lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -24,7 +24,7 @@ export const register: RequestHandler = async (req, res) => {
   }
 };
 
-export const login: RequestHandler = async (req, res) => {
+export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
   try {
     const user = await prisma.user.findUnique({
@@ -32,15 +32,13 @@ export const login: RequestHandler = async (req, res) => {
     });
 
     if (!user) {
-      res.status(401).json({ message: "Invalid email" });
-      return;
+      return res.status(401).json({ message: "Invalid email" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      res.status(401).json({ message: " Invalid email & password" });
-      return;
+      return res.status(401).json({ message: " Invalid email & password" });
     }
 
     const { accessToken, refreshToken } = generateToken(user);
@@ -67,11 +65,10 @@ export const logout: RequestHandler = (req, res) => {
   res.json({ message: "Logged out" });
 };
 
-export const refreshToken: RequestHandler = async (req, res) => {
+export const refreshToken = async (req: Request, res: Response) => {
   const token = req.cookies.refreshToken;
   if (!token) {
-    res.status(401).json({ message: "리프레시 토큰이 없습니다." });
-    return;
+    return res.status(401).json({ message: "리프레시 토큰이 없습니다." });
   }
 
   try {
@@ -86,8 +83,7 @@ export const refreshToken: RequestHandler = async (req, res) => {
     });
 
     if (!user) {
-      res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
-      return;
+      return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
     }
 
     const { accessToken, refreshToken } = generateToken(user);

@@ -44,23 +44,32 @@ export const getComments: RequestHandler = async (req, res) => {
 
 // 내 댓글 수정하기
 export const updateComment = async (req: UserRequest, res: Response) => {
-  if (!req.user) {
+  const userId = req.user?.id;
+  if (!userId) {
     res.status(401).json({ message: "Unauthorized" });
     return;
   }
 
+  const logId = Number(req.params.logId);
   const id = Number(req.params.id);
   const { content } = req.body;
   try {
-    const comment = await prisma.comment.findUnique({
-      where: { id },
+    const comment = await prisma.comment.findFirst({
+      where: { id, logId },
     });
     if (!comment) {
       res.status(404).json({ message: "해당 댓글을 찾을 수 없습니다." });
       return;
     }
 
-    if (req.user.id !== comment.userId) {
+    if (comment.logId !== logId) {
+      res
+        .status(400)
+        .json({ message: "댓글이 해당 독후감에 속하지 않습니다." });
+        return
+    }
+
+    if (userId !== comment.userId) {
       res.status(403).json({ message: "수정 권한이 없습니다." });
       return;
     }
@@ -80,32 +89,34 @@ export const updateComment = async (req: UserRequest, res: Response) => {
 
 // 내 댓글 삭제하기
 export const deleteComment = async (req: UserRequest, res: Response) => {
- 
   const userId = req.user?.id;
-  if(!userId) {
-    return res.status(401).json({message:"Unauthorized"})
+  if (!userId) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
   }
-  const commentId = Number(req.params.id);
-  try{
-    const comment = await prisma.comment.findUnique({
-      where:{id:commentId},
-    })
+  const logId = Number(req.params.logId);
+  const id = Number(req.params.id);
+  try {
+    const comment = await prisma.comment.findFirst({
+      where: { id, logId },
+    });
 
-    if(!comment) {
-      return res.status(404).json({message:"댓글을 찾을 수 없습니다."})
+    if (!comment) {
+      res.status(404).json({ message: "댓글을 찾을 수 없습니다." });
+      return;
     }
 
-    if(comment.userId !== userId) {
-      return res.status(403).json({message:"삭제 권한이 없습니다."})
+    if (comment.userId !== userId) {
+      res.status(403).json({ message: "삭제 권한이 없습니다." });
+      return;
     }
 
     await prisma.comment.delete({
-      where:{id:commentId}
-    })
+      where: { id },
+    });
     res.sendStatus(204);
-  }catch(error){
-    console.error("댓글 삭제 중 에러: ",error);
-    res.status(500).json({message:"서버 내부 오류가 발생했습니다."})
-    
+  } catch (error) {
+    console.error("댓글 삭제 중 에러: ", error);
+    res.status(500).json({ message: "서버 내부 오류가 발생했습니다." });
   }
 };

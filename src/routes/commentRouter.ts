@@ -1,10 +1,21 @@
 import express from "express";
-import { createComment, getComments } from "../controllers/commentController";
+import {
+  createComment,
+  deleteComment,
+  getComments,
+  updateComment,
+} from "../controllers/commentController";
 import authenticate from "../middlewares/auth";
 
 const commentRouter = express.Router();
 
-commentRouter.route('/:logId/coments').post(authenticate,createComment).get(getComments)
-commentRouter.route('comments/:id').patch().delete()
+commentRouter
+  .route("/")
+  .post(authenticate, createComment)
+  .get(getComments);
+commentRouter
+  .route("/:id")
+  .patch(authenticate, updateComment)
+  .delete(authenticate, deleteComment);
 
 export default commentRouter;
