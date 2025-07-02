@@ -1,23 +1,26 @@
 import type { Response, RequestHandler, Request } from "express";
 import prisma from "../lib/prisma";
 import type { UserRequest } from "../types/expressUserRequest";
+import path from "path";
+import fs from "fs";
 
 export const getMe = async (req: UserRequest, res: Response) => {
-  if (!req.user) {
-    res.status(401).json({ message: "Unauthorized" });
-    return 
+  const userId = req.user?.id;
+  if(!userId) {
+    res.status(401).json({message:"Unauthorized"})
+    return
   }
 
   try {
     const user = await prisma.user.findUnique({
       where: {
-        id: req.user.id,
+        id: userId,
       },
     });
 
     if (!user) {
       res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
-      return 
+      return;
     }
 
     res.status(200).json({ message: "ok", data: user });
@@ -28,29 +31,48 @@ export const getMe = async (req: UserRequest, res: Response) => {
 };
 
 // 패스워드 수정만 넣은 상태로 이미지 수정도 해야함
-export const updateProfile= async (req:Request, res:Response) => {
-  const id = Number(req.params.id);
+export const updateProfile = async (req: UserRequest, res: Response) => {
+  const userId = req.user?.id;
+  if(!userId) {
+    res.status(401).json({message:"Unauthorized"})
+    return
+  }
+
   const { password } = req.body;
+  const profile = req.file?.filename;
 
   const dataToUpdated: any = {};
   try {
     const existingUser = await prisma.user.findUnique({
       where: {
-        id,
+        id:userId,
       },
     });
 
     if (!existingUser) {
-       res.status(404).json({ message: "유효하지 않은 사용자입니다." });
-       return 
+      res.status(404).json({ message: "유효하지 않은 사용자입니다." });
+      return;
     }
 
     if (password) {
       dataToUpdated.password = password;
     }
 
+    if (profile && existingUser.profile) {
+      const uploadDir = path.join(__dirname, "../public/uploads");
+      const oldFilePath = path.join(uploadDir, existingUser.profile);
+
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath);
+      }
+
+      dataToUpdated.profile = profile;
+    } else if (profile) {
+      dataToUpdated.profile = profile;
+    }
+
     const updateUser = await prisma.user.update({
-      where: { id },
+      where: { id:userId },
       data: dataToUpdated,
     });
     res.status(200).json({ message: "ok", data: updateUser });

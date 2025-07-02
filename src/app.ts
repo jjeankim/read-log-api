@@ -8,9 +8,13 @@ import dotenv from "dotenv";
 import commentRouter from "./routes/commentRouter";
 dotenv.config();
 
+
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({extended:true}));
 app.use(cookieParser());
+
+
 
 app.use("/auth", authRouter);
 app.use("/users", userRouter);
