@@ -22,6 +22,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const commentRouter_1 = __importDefault(require("./routes/commentRouter"));
 dotenv_1.default.config();
 const cors_1 = __importDefault(require("cors"));
+const upload_1 = require("./middlewares/upload");
 const app = (0, express_1.default)();
 const corsOptions = {
     origin: ["http://localhost:3000"],
@@ -34,6 +35,7 @@ app.use("/auth", authRouter_1.default);
 app.use("/users", userRouter_1.default);
 app.use("/logs", logRouter_1.default);
 app.use("/logs/:logId/comments", commentRouter_1.default);
+app.use("/uploads", express_1.default.static(upload_1.uploadPath));
 app.listen(3000, () => {
     console.log("Server started!");
 });
