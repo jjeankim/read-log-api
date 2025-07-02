@@ -7,15 +7,16 @@ import {
   updateLog,
 } from "../controllers/logController";
 import authenticate from "../middlewares/auth";
+import { uploadMultiple } from "../middlewares/upload";
 
 const logRouter = express.Router();
 
-logRouter.route("/").post(authenticate, createLog).get(getLogs);
+logRouter.route("/").post(authenticate,uploadMultiple, createLog).get(getLogs);
 
 logRouter
   .route("/:logId")
   .get(getLog)
-  .put(authenticate, updateLog)
+  .put(authenticate, uploadMultiple,updateLog)
   .delete(authenticate, deleteLog);
   
 export default logRouter;

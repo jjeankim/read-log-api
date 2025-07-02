@@ -22,7 +22,7 @@ model Log {
   id         Int       @id @default(autoincrement())
   title      String
   content    String
-  bookImgUrl String
+  bookImgUrl String[]
   bookAuthor String
   isPublic   Boolean   @default(false)
   rating     Int

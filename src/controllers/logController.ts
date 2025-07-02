@@ -7,16 +7,21 @@ export const createLog = async (req: UserRequest, res: Response) => {
     res.status(401).json({ message: "Unauthorized" });
     return;
   }
-  const { title, content, bookImgUrl, bookAuthor, rating } = req.body;
+  const { title, content, bookAuthor, rating } = req.body;
+
+  const ratingInt = Number(rating);
+  const files = req.files  as Express.Multer.File[] || undefined;
+
+  const images= files?.map(file => file.filename) || []
 
   try {
     const log = await prisma.log.create({
       data: {
         title,
         content,
-        bookImgUrl,
+        bookImgUrl:images,
         bookAuthor,
-        rating,
+        rating:ratingInt,
         userId: req.user.id,
       },
     });
