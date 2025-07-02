@@ -9,6 +9,7 @@ const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const express_1 = __importDefault(require("express"));
 const app = (0, express_1.default)();
+const rootPath = path_1.default.resolve(__dirname, "../../");
 const uploadPath = path_1.default.join(__dirname, "../..", "public", "uploads");
 if (!fs_1.default.existsSync(uploadPath))
     fs_1.default.mkdirSync(uploadPath, { recursive: true });

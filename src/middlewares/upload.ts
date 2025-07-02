@@ -5,7 +5,7 @@ import express from "express";
 
 const app = express();
 const rootPath = path.resolve(__dirname,"../../")
-const uploadPath = path.join(__dirname, "../..", "public", "uploads");
+const uploadPath = path.join(__dirname, "public", "uploads");
 if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath, { recursive: true });
 
 app.use("/uploads", express.static(uploadPath));
