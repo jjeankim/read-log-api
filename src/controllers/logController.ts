@@ -41,16 +41,16 @@ export const getLogs: RequestHandler = async (req, res) => {
     });
     res.status(200).json({ message: "log 목록 가져오기 성공", data: logs });
   } catch (error) {
-    console.error("로그목록 가져오기 중 에러:", error);
+    console.error("로그 목록 가져오기 중 에러:", error);
     res.status(500).json({ message: "서버 내부 오류가 발생했습니다." });
   }
 };
 
 export const getLog: RequestHandler = async (req, res) => {
-  const id = Number(req.params.id);
+  const logId = Number(req.params.logId);
   try {
     const log = await prisma.log.findFirst({
-      where: { id, isPublic: true },
+      where: { id:logId, isPublic: true },
     });
     if (!log) {
       res.status(404).json({ message: "해당 공개 로그를 찾을 수 없습니다." });

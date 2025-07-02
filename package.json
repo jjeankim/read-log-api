@@ -13,7 +13,7 @@
     "db:reset": "ts-node src/scripts/resetDatabase.ts"
   },
   "dependencies": {
-    "@prisma/client": "^6.10.1",
+    "@prisma/client": "^6.11.0",
     "@types/cookie-parser": "^1.4.9",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.0.0",
@@ -28,7 +28,7 @@
   "devDependencies": {
     "@types/express": "^5.0.3",
     "nodemon": "^3.1.10",
-    "prisma": "^6.10.1",
+    "prisma": "^6.11.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }
