@@ -43,7 +43,7 @@ export const getComments: RequestHandler = async (req, res) => {
 };
 
 // 내 댓글 수정하기
-export const updateComment = async (req:UserRequest, res:Response) => {
+export const updateComment = async (req: UserRequest, res: Response) => {
   if (!req.user) {
     res.status(401).json({ message: "Unauthorized" });
     return;
@@ -79,6 +79,33 @@ export const updateComment = async (req:UserRequest, res:Response) => {
 };
 
 // 내 댓글 삭제하기
-export const deleteComment = async (req , res) => {
-  const id = Number(req.params.id);
-}
+export const deleteComment = async (req: UserRequest, res: Response) => {
+ 
+  const userId = req.user?.id;
+  if(!userId) {
+    return res.status(401).json({message:"Unauthorized"})
+  }
+  const commentId = Number(req.params.id);
+  try{
+    const comment = await prisma.comment.findUnique({
+      where:{id:commentId},
+    })
+
+    if(!comment) {
+      return res.status(404).json({message:"댓글을 찾을 수 없습니다."})
+    }
+
+    if(comment.userId !== userId) {
+      return res.status(403).json({message:"삭제 권한이 없습니다."})
+    }
+
+    await prisma.comment.delete({
+      where:{id:commentId}
+    })
+    res.sendStatus(204);
+  }catch(error){
+    console.error("댓글 삭제 중 에러: ",error);
+    res.status(500).json({message:"서버 내부 오류가 발생했습니다."})
+    
+  }
+};

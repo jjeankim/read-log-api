@@ -21,7 +21,7 @@ export const createLog = async (req: UserRequest, res: Response) => {
       },
     });
 
-    res.status(201).json({ message:"ok",data: log });
+    res.status(201).json({ message: "ok", data: log });
   } catch (error) {
     console.error("로그 작성 중 에러:", error);
     res.status(500).json({ message: "서버 내부 오류가 발생했습니다." });
@@ -98,9 +98,23 @@ export const updateLog = async (req: UserRequest, res: Response) => {
 };
 
 export const deleteLog = async (req: UserRequest, res: Response) => {
+  if (!req.user) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
+
   const id = Number(req.params.id);
   try {
-    const log = await prisma.log.delete({
+    const log = await prisma.log.findUnique({
+      where: { id },
+    });
+
+    if (req.user.id !== log?.userId) {
+      res.status(403).json({ message: "삭제 권한이 없습니다." });
+      return;
+    }
+
+    await prisma.log.delete({
       where: { id },
     });
 
