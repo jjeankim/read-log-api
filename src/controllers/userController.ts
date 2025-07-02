@@ -4,7 +4,8 @@ import type { UserRequest } from "../types/expressUserRequest";
 
 export const getMe = async (req: UserRequest, res: Response) => {
   if (!req.user) {
-    return res.status(401).json({ message: "Unauthorized" });
+    res.status(401).json({ message: "Unauthorized" });
+    return 
   }
 
   try {
@@ -15,7 +16,8 @@ export const getMe = async (req: UserRequest, res: Response) => {
     });
 
     if (!user) {
-      return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+      res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+      return 
     }
 
     res.status(200).json({ message: "ok", data: user });
@@ -39,7 +41,8 @@ export const updateProfile= async (req:Request, res:Response) => {
     });
 
     if (!existingUser) {
-      return res.status(404).json({ message: "유효하지 않은 사용자입니다." });
+       res.status(404).json({ message: "유효하지 않은 사용자입니다." });
+       return 
     }
 
     if (password) {

@@ -7,14 +7,14 @@ import {
 } from "../controllers/commentController";
 import authenticate from "../middlewares/auth";
 
-const commentRouter = express.Router();
+const commentRouter = express.Router({mergeParams:true});
 
 commentRouter
   .route("/")
   .post(authenticate, createComment)
   .get(getComments);
 commentRouter
-  .route("/:id")
+  .route("/:commentId")
   .patch(authenticate, updateComment)
   .delete(authenticate, deleteComment);
 

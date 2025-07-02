@@ -4,18 +4,20 @@ import type { UserRequest } from "../types/expressUserRequest";
 
 // 인증된 사용자가 댓글 작성하기
 export const createComment = async (req: UserRequest, res: Response) => {
-  if (!req.user) {
+  const userId = req.user?.id;
+  if (!userId) {
     res.status(401).json({ message: "Unauthorized" });
     return;
   }
 
   const logId = Number(req.params.logId);
   const { content } = req.body;
+
   try {
     const comment = await prisma.comment.create({
       data: {
         content,
-        userId: req.user.id,
+        userId,
         logId,
       },
     });
@@ -51,11 +53,11 @@ export const updateComment = async (req: UserRequest, res: Response) => {
   }
 
   const logId = Number(req.params.logId);
-  const id = Number(req.params.id);
+  const commentId = Number(req.params.commentId);
   const { content } = req.body;
   try {
     const comment = await prisma.comment.findFirst({
-      where: { id, logId },
+      where: { id: commentId, logId },
     });
     if (!comment) {
       res.status(404).json({ message: "해당 댓글을 찾을 수 없습니다." });
@@ -66,7 +68,7 @@ export const updateComment = async (req: UserRequest, res: Response) => {
       res
         .status(400)
         .json({ message: "댓글이 해당 독후감에 속하지 않습니다." });
-        return
+      return;
     }
 
     if (userId !== comment.userId) {
@@ -75,7 +77,7 @@ export const updateComment = async (req: UserRequest, res: Response) => {
     }
 
     const updateComment = await prisma.comment.update({
-      where: { id },
+      where: { id: commentId },
       data: {
         content,
       },
@@ -95,10 +97,10 @@ export const deleteComment = async (req: UserRequest, res: Response) => {
     return;
   }
   const logId = Number(req.params.logId);
-  const id = Number(req.params.id);
+  const commentId = Number(req.params.commentId);
   try {
     const comment = await prisma.comment.findFirst({
-      where: { id, logId },
+      where: { id: commentId, logId },
     });
 
     if (!comment) {
@@ -106,13 +108,21 @@ export const deleteComment = async (req: UserRequest, res: Response) => {
       return;
     }
 
+    console.log(comment.userId);
+    console.log(userId);
+
     if (comment.userId !== userId) {
       res.status(403).json({ message: "삭제 권한이 없습니다." });
       return;
     }
 
+    if (userId !== comment.userId) {
+      res.status(403).json({ message: "삭제 권한이 없습니다." });
+      return;
+    }
+
     await prisma.comment.delete({
-      where: { id },
+      where: { id: commentId },
     });
     res.sendStatus(204);
   } catch (error) {

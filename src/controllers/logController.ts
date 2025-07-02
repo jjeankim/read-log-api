@@ -65,11 +65,11 @@ export const updateLog = async (req: UserRequest, res: Response) => {
     return;
   }
 
-  const id = Number(req.params.id);
+  const logId = Number(req.params.logId);
   const { title, content, bookAuthor, bookImgUrl, rating } = req.body;
   try {
     const log = await prisma.log.findUnique({
-      where: { id },
+      where: { id:logId, },
     });
     if (!log) {
       res.status(404).json({ message: "해당 로그를 찾을 수 없습니다." });
@@ -82,7 +82,7 @@ export const updateLog = async (req: UserRequest, res: Response) => {
     }
 
     const updatedLog = await prisma.log.update({
-      where: { id },
+      where: { id:logId },
       data: {
         title,
         content,
@@ -104,10 +104,10 @@ export const deleteLog = async (req: UserRequest, res: Response) => {
     return;
   }
 
-  const id = Number(req.params.id);
+  const logId = Number(req.params.logId);
   try {
     const log = await prisma.log.findUnique({
-      where: { id },
+      where: { id:logId },
     });
 
     if (req.user.id !== log?.userId) {
@@ -116,7 +116,7 @@ export const deleteLog = async (req: UserRequest, res: Response) => {
     }
 
     await prisma.log.delete({
-      where: { id },
+      where: { id:logId },
     });
 
     res.sendStatus(204);

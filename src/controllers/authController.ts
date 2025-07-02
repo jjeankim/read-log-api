@@ -32,13 +32,15 @@ export const login = async (req: Request, res: Response) => {
     });
 
     if (!user) {
-      return res.status(401).json({ message: "Invalid email" });
+      res.status(401).json({ message: "Invalid email" });
+      return;
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return res.status(401).json({ message: " Invalid email & password" });
+      res.status(401).json({ message: " Invalid email & password" });
+      return;
     }
 
     const { accessToken, refreshToken } = generateToken(user);
@@ -68,7 +70,8 @@ export const logout: RequestHandler = (req, res) => {
 export const refreshToken = async (req: Request, res: Response) => {
   const token = req.cookies.refreshToken;
   if (!token) {
-    return res.status(401).json({ message: "리프레시 토큰이 없습니다." });
+    res.status(401).json({ message: "리프레시 토큰이 없습니다." });
+    return;
   }
 
   try {
@@ -83,7 +86,8 @@ export const refreshToken = async (req: Request, res: Response) => {
     });
 
     if (!user) {
-      return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+      res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+      return;
     }
 
     const { accessToken, refreshToken } = generateToken(user);

@@ -13,7 +13,7 @@ const logRouter = express.Router();
 logRouter.route("/").post(authenticate, createLog).get(getLogs);
 
 logRouter
-  .route("/:id")
+  .route("/:logId")
   .get(getLog)
   .put(authenticate, updateLog)
   .delete(authenticate, deleteLog);
