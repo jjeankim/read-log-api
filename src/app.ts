@@ -8,6 +8,8 @@ import dotenv from "dotenv";
 import commentRouter from "./routes/commentRouter";
 dotenv.config();
 import cors from "cors";
+import { uploadPath } from "./middlewares/upload";
+
 
 const app = express();
 
@@ -23,6 +25,9 @@ app.use("/auth", authRouter);
 app.use("/users", userRouter);
 app.use("/logs", logRouter);
 app.use("/logs/:logId/comments", commentRouter);
+app.use("/uploads", express.static(uploadPath));
+
+
 
 app.listen(3000, () => {
   console.log("Server started!");
