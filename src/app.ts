@@ -7,17 +7,22 @@ import logRouter from "./routes/logRouter";
 import dotenv from "dotenv";
 import commentRouter from "./routes/commentRouter";
 dotenv.config();
-
+import cors from "cors";
 
 const app = express();
+
+const corsOptions = {
+  origin: ["http://localhost:3000"],
+};
+app.use(cors(corsOptions));
 app.use(express.json());
-app.use(express.urlencoded({extended:true}));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use("/auth", authRouter);
 app.use("/users", userRouter);
 app.use("/logs", logRouter);
-app.use("/logs/:logId/comments",commentRouter)
+app.use("/logs/:logId/comments", commentRouter);
 
 app.listen(3000, () => {
   console.log("Server started!");
