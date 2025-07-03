@@ -85,7 +85,7 @@ const getLog = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const logId = Number(req.params.logId);
     const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
     try {
-        const log = yield prisma_1.default.log.findFirst({
+        const log = yield prisma_1.default.log.findUnique({
             where: { id: logId },
         });
         if (!log) {

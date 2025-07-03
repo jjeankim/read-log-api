@@ -76,7 +76,7 @@ export const getLog = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
 
   try {
-    const log = await prisma.log.findFirst({
+    const log = await prisma.log.findUnique({
       where: { id: logId },
     });
     if (!log) {
