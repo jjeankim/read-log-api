@@ -4,6 +4,7 @@ import {
   deleteLog,
   getLog,
   getLogs,
+  getMyLogs,
   updateLog,
 } from "../controllers/logController";
 import authenticate from "../middlewares/auth";
@@ -18,5 +19,7 @@ logRouter
   .get(getLog)
   .put(authenticate, uploadMultiple,updateLog)
   .delete(authenticate, deleteLog);
+
+logRouter.get("/my-logs", authenticate, getMyLogs)
   
 export default logRouter;
