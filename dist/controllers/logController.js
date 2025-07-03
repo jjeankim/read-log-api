@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteLog = exports.updateLog = exports.getLog = exports.getLogs = exports.createLog = void 0;
+exports.deleteLog = exports.updateLog = exports.getMyLogs = exports.getLog = exports.getLogs = exports.createLog = void 0;
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const createLog = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.user) {
@@ -76,6 +76,24 @@ const getLog = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.getLog = getLog;
+const getMyLogs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!req.user) {
+        res.status(401).json({ message: "Unauthorized" });
+        return;
+    }
+    try {
+        const logs = yield prisma_1.default.log.findMany({
+            where: { userId: req.user.id },
+            orderBy: { createdAt: "desc" },
+        });
+        res.status(200).json({ message: "내 로그 목록 가져오기 성공", data: logs });
+    }
+    catch (error) {
+        console.error("내 로그 목록 가져오기 중 에러:", error);
+        res.status(500).json({ message: "서버 내부 오류가 발생했습니다." });
+    }
+});
+exports.getMyLogs = getMyLogs;
 const updateLog = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.user) {
         res.status(401).json({ message: "Unauthorized" });
@@ -105,7 +123,7 @@ const updateLog = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 bookAuthor,
                 bookImgUrl,
                 rating: ratingInt,
-                isPublic: isPublicBoolean
+                isPublic: isPublicBoolean,
             },
         });
         res.status(200).json({ message: "로그 수정 성공", data: updatedLog });

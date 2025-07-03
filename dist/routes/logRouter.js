@@ -14,4 +14,5 @@ logRouter
     .get(logController_1.getLog)
     .put(auth_1.default, upload_1.uploadMultiple, logController_1.updateLog)
     .delete(auth_1.default, logController_1.deleteLog);
+logRouter.get("/my-logs", auth_1.default, logController_1.getMyLogs);
 exports.default = logRouter;
