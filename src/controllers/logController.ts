@@ -7,22 +7,24 @@ export const createLog = async (req: UserRequest, res: Response) => {
     res.status(401).json({ message: "Unauthorized" });
     return;
   }
-  const { title, content, bookAuthor, rating } = req.body;
+  const { title, content, bookAuthor, rating, isPublic } = req.body;
 
   const ratingInt = Number(rating);
-  const files = req.files  as Express.Multer.File[] || undefined;
+  const isPublicBoolean = isPublic === "true";
+  const files = (req.files as Express.Multer.File[]) || undefined;
 
-  const images= files?.map(file => file.filename) || []
+  const images = files?.map((file) => file.filename) || [];
 
   try {
     const log = await prisma.log.create({
       data: {
         title,
         content,
-        bookImgUrl:images,
+        bookImgUrl: images,
         bookAuthor,
-        rating:ratingInt,
+        rating: ratingInt,
         userId: req.user.id,
+        isPublic: isPublicBoolean,
       },
     });
 
@@ -50,7 +52,7 @@ export const getLog: RequestHandler = async (req, res) => {
   const logId = Number(req.params.logId);
   try {
     const log = await prisma.log.findFirst({
-      where: { id:logId, isPublic: true },
+      where: { id: logId, isPublic: true },
     });
     if (!log) {
       res.status(404).json({ message: "해당 공개 로그를 찾을 수 없습니다." });
@@ -71,10 +73,13 @@ export const updateLog = async (req: UserRequest, res: Response) => {
   }
 
   const logId = Number(req.params.logId);
-  const { title, content, bookAuthor, bookImgUrl, rating } = req.body;
+  const { title, content, bookAuthor, bookImgUrl, rating, isPublic } = req.body;
+
+  const ratingInt = Number(rating);
+  const isPublicBoolean = isPublic === "true";
   try {
     const log = await prisma.log.findUnique({
-      where: { id:logId, },
+      where: { id: logId },
     });
     if (!log) {
       res.status(404).json({ message: "해당 로그를 찾을 수 없습니다." });
@@ -87,13 +92,14 @@ export const updateLog = async (req: UserRequest, res: Response) => {
     }
 
     const updatedLog = await prisma.log.update({
-      where: { id:logId },
+      where: { id: logId },
       data: {
         title,
         content,
         bookAuthor,
         bookImgUrl,
-        rating,
+        rating: ratingInt,
+        isPublic: isPublicBoolean
       },
     });
     res.status(200).json({ message: "로그 수정 성공", data: updatedLog });
@@ -112,7 +118,7 @@ export const deleteLog = async (req: UserRequest, res: Response) => {
   const logId = Number(req.params.logId);
   try {
     const log = await prisma.log.findUnique({
-      where: { id:logId },
+      where: { id: logId },
     });
 
     if (req.user.id !== log?.userId) {
@@ -121,7 +127,7 @@ export const deleteLog = async (req: UserRequest, res: Response) => {
     }
 
     await prisma.log.delete({
-      where: { id:logId },
+      where: { id: logId },
     });
 
     res.sendStatus(204);

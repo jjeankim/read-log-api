@@ -19,10 +19,11 @@ const createLog = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(401).json({ message: "Unauthorized" });
         return;
     }
-    const { title, content, bookAuthor, rating } = req.body;
+    const { title, content, bookAuthor, rating, isPublic } = req.body;
     const ratingInt = Number(rating);
+    const isPublicBoolean = isPublic === "true";
     const files = req.files || undefined;
-    const images = (files === null || files === void 0 ? void 0 : files.map(file => file.filename)) || [];
+    const images = (files === null || files === void 0 ? void 0 : files.map((file) => file.filename)) || [];
     try {
         const log = yield prisma_1.default.log.create({
             data: {
@@ -32,6 +33,7 @@ const createLog = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 bookAuthor,
                 rating: ratingInt,
                 userId: req.user.id,
+                isPublic: isPublicBoolean,
             },
         });
         res.status(201).json({ message: "ok", data: log });
@@ -80,10 +82,12 @@ const updateLog = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         return;
     }
     const logId = Number(req.params.logId);
-    const { title, content, bookAuthor, bookImgUrl, rating } = req.body;
+    const { title, content, bookAuthor, bookImgUrl, rating, isPublic } = req.body;
+    const ratingInt = Number(rating);
+    const isPublicBoolean = isPublic === "true";
     try {
         const log = yield prisma_1.default.log.findUnique({
-            where: { id: logId, },
+            where: { id: logId },
         });
         if (!log) {
             res.status(404).json({ message: "해당 로그를 찾을 수 없습니다." });
@@ -100,7 +104,8 @@ const updateLog = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 content,
                 bookAuthor,
                 bookImgUrl,
-                rating,
+                rating: ratingInt,
+                isPublic: isPublicBoolean
             },
         });
         res.status(200).json({ message: "로그 수정 성공", data: updatedLog });
