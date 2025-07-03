@@ -1,0 +1,168 @@
+openapi: 3.0.0
+info:
+  title: Read Log API
+  version: 1.0.0
+  description: 독후감 관리 API
+servers:
+  - url: https://read-log.onrender.com
+paths:
+  /auth/register:
+    post:
+      summary: 회원가입
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: user@example.com
+                password:
+                  type: string
+                  example: Password123!
+                username:
+                  type: string
+                  example: UserName
+      responses:
+        201:
+          description: 회원가입 성공
+        400:
+          description: 유효성 검사 실패
+        500:
+          description: 서버 오류
+  /auth/login:
+    post:
+      summary: 로그인
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: user@example.com
+                password:
+                  type: string
+                  example: Password123!
+      responses:
+        200:
+          description: 로그인 성공
+        401:
+          description: 인증 실패
+        500:
+          description: 서버 오류
+  /users/me:
+    get:
+      summary: 내 정보 가져오기
+      responses:
+        200:
+          description: 성공적으로 사용자 정보를 가져옴
+        401:
+          description: 인증 실패
+        500:
+          description: 서버 오류
+  /logs:
+    get:
+      summary: 공개된 로그 목록 가져오기
+      responses:
+        200:
+          description: 성공적으로 로그 목록을 가져옴
+        500:
+          description: 서버 오류
+    post:
+      summary: 로그 작성
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: 독후감 제목
+                content:
+                  type: string
+                  example: 독후감 내용
+                bookAuthor:
+                  type: string
+                  example: 저자 이름
+                rating:
+                  type: integer
+                  example: 5
+      responses:
+        201:
+          description: 로그 작성 성공
+        401:
+          description: 인증 실패
+        500:
+          description: 서버 오류
+  /logs/{logId}:
+    get:
+      summary: 특정 로그 가져오기
+      parameters:
+        - name: logId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 성공적으로 로그를 가져옴
+        404:
+          description: 로그를 찾을 수 없음
+        500:
+          description: 서버 오류
+    put:
+      summary: 특정 로그 수정
+      parameters:
+        - name: logId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+                bookAuthor:
+                  type: string
+                rating:
+                  type: integer
+      responses:
+        200:
+          description: 로그 수정 성공
+        401:
+          description: 인증 실패
+        404:
+          description: 로그를 찾을 수 없음
+        500:
+          description: 서버 오류
+    delete:
+      summary: 특정 로그 삭제
+      parameters:
+        - name: logId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: 로그 삭제 성공
+        401:
+          description: 인증 실패
+        403:
+          description: 삭제 권한 없음
+        500:
+          description: 서버 오류

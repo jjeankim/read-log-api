@@ -9,6 +9,9 @@ import commentRouter from "./routes/commentRouter";
 dotenv.config();
 import cors from "cors";
 import { uploadPath } from "./middlewares/upload";
+import swaggerUi from "swagger-ui-express"
+import YAML from "yamljs";
+import path from "path"
 
 const app = express();
 
@@ -20,6 +23,9 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+const swaggerDocument = YAML.load(path.join(__dirname, "../swagger.yaml"));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
 app.use("/auth", authRouter);
 app.use("/users", userRouter);

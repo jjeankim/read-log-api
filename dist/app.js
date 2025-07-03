@@ -23,6 +23,9 @@ const commentRouter_1 = __importDefault(require("./routes/commentRouter"));
 dotenv_1.default.config();
 const cors_1 = __importDefault(require("cors"));
 const upload_1 = require("./middlewares/upload");
+const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
+const yamljs_1 = __importDefault(require("yamljs"));
+const path_1 = __importDefault(require("path"));
 const app = (0, express_1.default)();
 const corsOptions = {
     origin: ["http://localhost:3000"],
@@ -32,11 +35,22 @@ app.use((0, cors_1.default)(corsOptions));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use((0, cookie_parser_1.default)());
+const swaggerDocument = yamljs_1.default.load(path_1.default.join(__dirname, "../swagger.yaml"));
+app.use("/api-docs", swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swaggerDocument));
 app.use("/auth", authRouter_1.default);
 app.use("/users", userRouter_1.default);
 app.use("/logs", logRouter_1.default);
 app.use("/logs/:logId/comments", commentRouter_1.default);
 app.use("/uploads", express_1.default.static(upload_1.uploadPath));
+app.use((req, res, next) => {
+    res
+        .status(404)
+        .json({ message: "요청하신 리소스를 찾을 수 없습니다.", status: "Fail" });
+});
+app.use((error, req, res, next) => {
+    console.log(error.stack());
+    res.status(500).json(`sever error ${error.stack}, status: "Error`);
+});
 app.listen(3000, () => {
     console.log("Server started!");
 });
