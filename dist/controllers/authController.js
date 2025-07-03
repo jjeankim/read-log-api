@@ -54,8 +54,8 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const { accessToken, refreshToken } = (0, token_1.default)(user);
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: false,
-            // sameSite: "strict",
+            secure: true,
+            sameSite: "lax",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
         res.status(200).json({ message: "ok", accessToken });
@@ -69,9 +69,8 @@ exports.login = login;
 const logout = (req, res) => {
     res.clearCookie("refreshToken", {
         httpOnly: true,
-        secure: false,
-        // sameSite: "strict",
-        path: "/",
+        secure: true,
+        sameSite: "lax",
     });
     res.json({ message: "Logged out" });
 };
