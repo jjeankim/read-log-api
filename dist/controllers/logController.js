@@ -60,6 +60,7 @@ const getLogs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 exports.getLogs = getLogs;
 const getLog = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const logId = Number(req.params.logId);
+    console.log("logId:", logId);
     try {
         const log = yield prisma_1.default.log.findFirst({
             where: { id: logId, isPublic: true },

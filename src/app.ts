@@ -44,7 +44,7 @@ app.use((error: any, req: Request, res: Response, next: NextFunction) => {
   res.status(500).json(`sever error ${error.stack}, status: "Error`);
 });
 
-app.listen(3000, () => {
+app.listen(4000, () => {
   console.log("Server started!");
 });
 

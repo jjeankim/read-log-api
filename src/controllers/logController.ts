@@ -50,6 +50,8 @@ export const getLogs: RequestHandler = async (req, res) => {
 
 export const getLog: RequestHandler = async (req, res) => {
   const logId = Number(req.params.logId);
+  console.log("logId:",logId);
+  
   try {
     const log = await prisma.log.findFirst({
       where: { id: logId, isPublic: true },

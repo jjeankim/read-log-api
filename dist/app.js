@@ -51,7 +51,7 @@ app.use((error, req, res, next) => {
     console.log(error.stack());
     res.status(500).json(`sever error ${error.stack}, status: "Error`);
 });
-app.listen(3000, () => {
+app.listen(4000, () => {
     console.log("Server started!");
 });
 process.on("SIGINT", () => __awaiter(void 0, void 0, void 0, function* () {
