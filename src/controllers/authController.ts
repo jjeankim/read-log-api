@@ -63,6 +63,7 @@ export const logout: RequestHandler = (req, res) => {
     httpOnly: true,
     secure: false,
     // sameSite: "strict",
+    path: "/",
   });
   res.json({ message: "Logged out" });
 };
