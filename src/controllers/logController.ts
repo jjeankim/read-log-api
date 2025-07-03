@@ -71,16 +71,21 @@ export const getLogs: RequestHandler = async (req, res) => {
   }
 };
 
-export const getLog: RequestHandler = async (req, res) => {
+export const getLog = async (req: UserRequest, res: Response) => {
   const logId = Number(req.params.logId);
-  console.log("logId:", logId);
+  const userId = req.user?.id;
 
   try {
     const log = await prisma.log.findFirst({
-      where: { id: logId, isPublic: true },
+      where: { id: logId },
     });
     if (!log) {
       res.status(404).json({ message: "해당 공개 로그를 찾을 수 없습니다." });
+      return;
+    }
+    if (!log.isPublic && log.userId !== userId) {
+      res.status(403).json({ message: "비공개 로그에 접근할 수 없습니다." });
+
       return;
     }
 
