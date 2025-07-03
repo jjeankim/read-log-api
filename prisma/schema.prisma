@@ -24,7 +24,7 @@ model Log {
   content    String
   bookImgUrl String[]
   bookAuthor String
-  isPublic   Boolean   @default(false)
+  isPublic   Boolean   
   rating     Int
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt

@@ -45,12 +45,34 @@ const createLog = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.createLog = createLog;
 const getLogs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
     try {
-        const logs = yield prisma_1.default.log.findMany({
-            where: { isPublic: true },
-            orderBy: { createdAt: "desc" },
+        const [logs, total] = yield Promise.all([
+            prisma_1.default.log.findMany({
+                where: { isPublic: true },
+                orderBy: { createdAt: "desc" },
+                skip,
+                take: limit,
+            }),
+            prisma_1.default.log.count({
+                where: { isPublic: true },
+            }),
+        ]);
+        const totalPage = Math.ceil(total / limit);
+        const hasMore = page < totalPage;
+        res.status(200).json({
+            message: "log 목록 가져오기 성공",
+            data: logs,
+            pagination: {
+                total,
+                page,
+                totalPage,
+                limit,
+                hasMore,
+            },
         });
-        res.status(200).json({ message: "log 목록 가져오기 성공", data: logs });
     }
     catch (error) {
         console.error("로그 목록 가져오기 중 에러:", error);
@@ -82,12 +104,34 @@ const getMyLogs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(401).json({ message: "Unauthorized" });
         return;
     }
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
     try {
-        const logs = yield prisma_1.default.log.findMany({
-            where: { userId: req.user.id },
-            orderBy: { createdAt: "desc" },
+        const [logs, total] = yield Promise.all([
+            prisma_1.default.log.findMany({
+                where: { userId: req.user.id },
+                orderBy: { createdAt: "desc" },
+                skip,
+                take: limit,
+            }),
+            prisma_1.default.log.count({
+                where: { userId: req.user.id },
+            }),
+        ]);
+        const totalPages = Math.ceil(total / limit);
+        const hasMore = page < totalPages;
+        res.status(200).json({
+            message: "내 로그 목록 가져오기 성공",
+            data: logs,
+            pagination: {
+                total,
+                page,
+                totalPages,
+                limit,
+                hasMore,
+            },
         });
-        res.status(200).json({ message: "내 로그 목록 가져오기 성공", data: logs });
     }
     catch (error) {
         console.error("내 로그 목록 가져오기 중 에러:", error);

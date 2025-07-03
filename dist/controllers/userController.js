@@ -16,6 +16,7 @@ exports.updateProfile = exports.getMe = void 0;
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const getMe = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
@@ -62,7 +63,8 @@ const updateProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             return;
         }
         if (password) {
-            dataToUpdated.password = password;
+            const hashedPassword = yield bcryptjs_1.default.hash(password, 10);
+            dataToUpdated.password = hashedPassword;
         }
         if (profile && existingUser.profile) {
             const uploadDir = path_1.default.join(__dirname, "../public/uploads");

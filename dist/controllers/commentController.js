@@ -14,7 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteComment = exports.updateComment = exports.getComments = exports.createComment = void 0;
 const prisma_1 = __importDefault(require("../lib/prisma"));
-// 인증된 사용자가 댓글 작성하기
 const createComment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
@@ -40,16 +39,34 @@ const createComment = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.createComment = createComment;
-// 공개된 로그 목록 가져오기
 const getComments = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const logId = Number(req.params.logId);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
     try {
-        const comments = yield prisma_1.default.comment.findMany({
-            where: { logId },
+        const [comments, total] = yield Promise.all([
+            prisma_1.default.comment.findMany({
+                where: { logId },
+                orderBy: { createdAt: "desc" },
+                skip,
+                take: limit,
+            }),
+            prisma_1.default.comment.count({ where: { logId } }),
+        ]);
+        const totalPages = Math.ceil(total / limit);
+        const hasMore = page < totalPages;
+        res.status(200).json({
+            message: "댓글 목록 가져오기 성공",
+            data: comments,
+            pagination: {
+                total,
+                page,
+                totalPages,
+                limit,
+                hasMore,
+            },
         });
-        res
-            .status(200)
-            .json({ message: "댓글 목록 가져오기 성공", data: comments });
     }
     catch (error) {
         console.error("댓글 목록 가져오기 중 에러:", error);
@@ -57,7 +74,6 @@ const getComments = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     }
 });
 exports.getComments = getComments;
-// 내 댓글 수정하기
 const updateComment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;

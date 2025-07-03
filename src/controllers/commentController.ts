@@ -2,7 +2,6 @@ import type { RequestHandler, Response } from "express";
 import prisma from "../lib/prisma";
 import type { UserRequest } from "../types/expressUserRequest";
 
-// 인증된 사용자가 댓글 작성하기
 export const createComment = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
@@ -28,23 +27,41 @@ export const createComment = async (req: UserRequest, res: Response) => {
   }
 };
 
-// 공개된 로그 목록 가져오기
 export const getComments: RequestHandler = async (req, res) => {
   const logId = Number(req.params.logId);
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const skip = (page - 1) * limit;
   try {
-    const comments = await prisma.comment.findMany({
-      where: { logId },
+    const [comments, total] = await Promise.all([
+      prisma.comment.findMany({
+        where: { logId },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.comment.count({ where: { logId } }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+    const hasMore = page < totalPages;
+    res.status(200).json({
+      message: "댓글 목록 가져오기 성공",
+      data: comments,
+      pagination: {
+        total,
+        page,
+        totalPages,
+        limit,
+        hasMore,
+      },
     });
-    res
-      .status(200)
-      .json({ message: "댓글 목록 가져오기 성공", data: comments });
   } catch (error) {
     console.error("댓글 목록 가져오기 중 에러:", error);
     res.status(500).json({ message: "서버 내부 오류가 발생했습니다." });
   }
 };
 
-// 내 댓글 수정하기
 export const updateComment = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {

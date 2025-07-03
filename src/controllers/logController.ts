@@ -36,12 +36,35 @@ export const createLog = async (req: UserRequest, res: Response) => {
 };
 
 export const getLogs: RequestHandler = async (req, res) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const skip = (page - 1) * limit;
   try {
-    const logs = await prisma.log.findMany({
-      where: { isPublic: true },
-      orderBy: { createdAt: "desc" },
+    const [logs, total] = await Promise.all([
+      prisma.log.findMany({
+        where: { isPublic: true },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.log.count({
+        where: { isPublic: true },
+      }),
+    ]);
+    const totalPage = Math.ceil(total / limit);
+    const hasMore = page < totalPage;
+
+    res.status(200).json({
+      message: "log 목록 가져오기 성공",
+      data: logs,
+      pagination: {
+        total,
+        page,
+        totalPage,
+        limit,
+        hasMore,
+      },
     });
-    res.status(200).json({ message: "log 목록 가져오기 성공", data: logs });
   } catch (error) {
     console.error("로그 목록 가져오기 중 에러:", error);
     res.status(500).json({ message: "서버 내부 오류가 발생했습니다." });
@@ -50,8 +73,8 @@ export const getLogs: RequestHandler = async (req, res) => {
 
 export const getLog: RequestHandler = async (req, res) => {
   const logId = Number(req.params.logId);
-  console.log("logId:",logId);
-  
+  console.log("logId:", logId);
+
   try {
     const log = await prisma.log.findFirst({
       where: { id: logId, isPublic: true },
@@ -68,17 +91,40 @@ export const getLog: RequestHandler = async (req, res) => {
   }
 };
 
-export const getMyLogs = async (req:UserRequest, res:Response) => {
+export const getMyLogs = async (req: UserRequest, res: Response) => {
   if (!req.user) {
     res.status(401).json({ message: "Unauthorized" });
     return;
   }
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const skip = (page - 1) * limit;
   try {
-    const logs = await prisma.log.findMany({
-      where: { userId: req.user.id },
-      orderBy: { createdAt: "desc" },
+    const [logs, total] = await Promise.all([
+      prisma.log.findMany({
+        where: { userId: req.user.id },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.log.count({
+        where: { userId: req.user.id },
+      }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+    const hasMore = page < totalPages;
+    res.status(200).json({
+      message: "내 로그 목록 가져오기 성공",
+      data: logs,
+      pagination: {
+        total,
+        page,
+        totalPages,
+        limit,
+        hasMore,
+      },
     });
-    res.status(200).json({ message: "내 로그 목록 가져오기 성공", data: logs });
   } catch (error) {
     console.error("내 로그 목록 가져오기 중 에러:", error);
     res.status(500).json({ message: "서버 내부 오류가 발생했습니다." });

@@ -181,6 +181,36 @@ paths:
         500:
           description: 서버 오류
   /logs/{logId}/comments/{commentId}:
+    patch:
+      summary: 특정 댓글 수정
+      parameters:
+        - name: logId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentRequest"
+      responses:
+        200:
+          description: 댓글 수정 성공
+        400:
+          description: 댓글이 해당 독후감에 속하지 않습니다.
+        403:
+          description: 수정 권한이 없습니다.
+        404:
+          description: 해당 댓글을 찾을 수 없습니다.
+        500:
+          description: 서버 오류
     delete:
       summary: 특정 댓글 삭제
       parameters:
@@ -197,8 +227,10 @@ paths:
       responses:
         204:
           description: 댓글 삭제 성공
+        403:
+          description: 삭제 권한이 없습니다.
         404:
-          description: 댓글을 찾을 수 없음
+          description: 댓글을 찾을 수 없습니다.
         500:
           description: 서버 오류
 components:

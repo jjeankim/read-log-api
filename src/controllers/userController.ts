@@ -3,6 +3,7 @@ import prisma from "../lib/prisma";
 import type { UserRequest } from "../types/expressUserRequest";
 import path from "path";
 import fs from "fs";
+import bcrypt from "bcryptjs"
 
 export const getMe = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
@@ -54,7 +55,8 @@ export const updateProfile = async (req: UserRequest, res: Response) => {
     }
 
     if (password) {
-      dataToUpdated.password = password;
+      const hashedPassword = await bcrypt.hash(password, 10)
+      dataToUpdated.password = hashedPassword;
     }
 
     if (profile && existingUser.profile) {
