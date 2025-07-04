@@ -81,9 +81,7 @@ const getLogs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.getLogs = getLogs;
 const getLog = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
     const logId = Number(req.params.logId);
-    const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
     try {
         const log = yield prisma_1.default.log.findUnique({
             where: { id: logId },
@@ -92,7 +90,15 @@ const getLog = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             res.status(404).json({ message: "해당 공개 로그를 찾을 수 없습니다." });
             return;
         }
-        if (!log.isPublic && log.userId !== userId) {
+        if (log.isPublic) {
+            res.status(200).json({ message: "ok", data: log });
+            return;
+        }
+        if (!req.user) {
+            res.status(401).json({ message: "로그인이 필요합니다." });
+            return;
+        }
+        if (log.userId !== req.user.id) {
             res.status(403).json({ message: "비공개 로그에 접근할 수 없습니다." });
             return;
         }
