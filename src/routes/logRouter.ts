@@ -9,17 +9,18 @@ import {
 } from "../controllers/logController";
 import authenticate from "../middlewares/auth";
 import { uploadMultiple } from "../middlewares/upload";
+import { optionalAuthMiddleware } from "../middlewares/optionalAuthMiddleware";
 
 const logRouter = express.Router();
 
-logRouter.route("/").post(authenticate,uploadMultiple, createLog).get(getLogs);
+logRouter.route("/").post(authenticate, uploadMultiple, createLog).get(getLogs);
 
 logRouter
   .route("/:logId")
-  .get(getLog)
-  .put(authenticate, uploadMultiple,updateLog)
+  .get(optionalAuthMiddleware, getLog)
+  .put(authenticate, uploadMultiple, updateLog)
   .delete(authenticate, deleteLog);
 
-logRouter.get("/my-logs", authenticate, getMyLogs)
-  
+logRouter.get("/my-logs", authenticate, getMyLogs);
+
 export default logRouter;
