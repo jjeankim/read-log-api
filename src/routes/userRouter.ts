@@ -8,8 +8,7 @@ const userRouter = express.Router();
 
 userRouter
   .get("/me", authenticate, getMe)
-  .get("/my-logs",authenticate, getMyLogs)
-  .patch("/profile", authenticate,uploadSingle, updateProfile)
-  
+  .get("/my-logs", authenticate, getMyLogs)
+  .patch("/profile", authenticate, uploadSingle, updateProfile);
 
 export default userRouter;
