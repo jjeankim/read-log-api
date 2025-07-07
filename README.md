@@ -33,6 +33,7 @@ Express와 Prisma, PostgreSQL을 기반으로 RESTfull API를 제공합니다.
 ![bcryptjs](https://img.shields.io/badge/bcryptjs-003B57?style=for-the-badge)
 ![Zod](https://img.shields.io/badge/Zod-5D3FD3?style=for-the-badge)
 ![yamljs](https://img.shields.io/badge/yamljs-F4C030?style=for-the-badge)
+
 <br/>
 
 ## 📦 설치 및 실행
@@ -108,7 +109,7 @@ JWT_REFRESH_SECRET_key="your_refresh_token_secret"
 └── 📄tsconfig.json     # TypeScript 설정
 ```
 
-
+<br/>
 
 ## 🌐 CORS 설정
 
