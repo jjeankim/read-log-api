@@ -1,11 +1,12 @@
 import type { RequestHandler, Response } from "express";
 import prisma from "../lib/prisma";
 import type { UserRequest } from "../types/expressUserRequest";
+import { ERROR_MESSAGE, SUCCESS_MESSAGES } from "../constants/message";
 
 export const createComment = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
-    res.status(401).json({ message: "Unauthorized" });
+    res.status(401).json({ message: ERROR_MESSAGE.UNAUTHORIZED });
     return;
   }
 
@@ -20,10 +21,10 @@ export const createComment = async (req: UserRequest, res: Response) => {
         logId,
       },
     });
-    res.status(201).json({ message: "ok", data: comment });
+    res.status(201).json({ message: SUCCESS_MESSAGES.CREATE, data: comment });
   } catch (error) {
     console.error("댓글 작성 중 에러:", error);
-    res.status(500).json({ message: "서버 내부 오류가 발생했습니다." });
+    res.status(500).json({ message: ERROR_MESSAGE.SERVER_ERROR });
   }
 };
 
@@ -46,7 +47,7 @@ export const getComments: RequestHandler = async (req, res) => {
     const totalPages = Math.ceil(total / limit);
     const hasMore = page < totalPages;
     res.status(200).json({
-      message: "댓글 목록 가져오기 성공",
+      message: SUCCESS_MESSAGES.OK,
       data: comments,
       pagination: {
         total,
@@ -58,14 +59,14 @@ export const getComments: RequestHandler = async (req, res) => {
     });
   } catch (error) {
     console.error("댓글 목록 가져오기 중 에러:", error);
-    res.status(500).json({ message: "서버 내부 오류가 발생했습니다." });
+    res.status(500).json({ message: ERROR_MESSAGE.SERVER_ERROR });
   }
 };
 
 export const updateComment = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
-    res.status(401).json({ message: "Unauthorized" });
+    res.status(401).json({ message: ERROR_MESSAGE.UNAUTHORIZED });
     return;
   }
 

@@ -3,13 +3,14 @@ import prisma from "../lib/prisma";
 import type { UserRequest } from "../types/expressUserRequest";
 import path from "path";
 import fs from "fs";
-import bcrypt from "bcryptjs"
+import bcrypt from "bcryptjs";
+import { ERROR_MESSAGE, SUCCESS_MESSAGES } from "../constants/message";
 
 export const getMe = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
-  if(!userId) {
-    res.status(401).json({message:"Unauthorized"})
-    return
+  if (!userId) {
+    res.status(401).json({ message: ERROR_MESSAGE.UNAUTHORIZED });
+    return;
   }
 
   try {
@@ -20,22 +21,22 @@ export const getMe = async (req: UserRequest, res: Response) => {
     });
 
     if (!user) {
-      res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+      res.status(404).json({ message: ERROR_MESSAGE.USER_NOT_FOUND });
       return;
     }
 
-    res.status(200).json({ message: "ok", data: user });
+    res.status(200).json({ message: SUCCESS_MESSAGES.OK, data: user });
   } catch (error) {
     console.error("내 정보 가져오기 중 에러:", error);
-    res.status(500).json({ message: "서버 내부 오류가 발생했습니다." });
+    res.status(500).json({ message: ERROR_MESSAGE.SERVER_ERROR });
   }
 };
 
 export const updateProfile = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
-  if(!userId) {
-    res.status(401).json({message:"Unauthorized"})
-    return
+  if (!userId) {
+    res.status(401).json({ message: ERROR_MESSAGE.UNAUTHORIZED });
+    return;
   }
 
   const { password } = req.body;
@@ -45,17 +46,17 @@ export const updateProfile = async (req: UserRequest, res: Response) => {
   try {
     const existingUser = await prisma.user.findUnique({
       where: {
-        id:userId,
+        id: userId,
       },
     });
 
     if (!existingUser) {
-      res.status(404).json({ message: "유효하지 않은 사용자입니다." });
+      res.status(404).json({ message: ERROR_MESSAGE.UNAUTHORIZED });
       return;
     }
 
     if (password) {
-      const hashedPassword = await bcrypt.hash(password, 10)
+      const hashedPassword = await bcrypt.hash(password, 10);
       dataToUpdated.password = hashedPassword;
     }
 
@@ -73,12 +74,12 @@ export const updateProfile = async (req: UserRequest, res: Response) => {
     }
 
     const updateUser = await prisma.user.update({
-      where: { id:userId },
+      where: { id: userId },
       data: dataToUpdated,
     });
-    res.status(200).json({ message: "ok", data: updateUser });
+    res.status(200).json({ message: SUCCESS_MESSAGES.OK, data: updateUser });
   } catch (error) {
     console.error("프로필 업데이트 중 에러:", error);
-    res.status(500).json({ message: "서버 내부 오류가 발생했습니다." });
+    res.status(500).json({ message: ERROR_MESSAGE.SERVER_ERROR });
   }
 };

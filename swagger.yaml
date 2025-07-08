@@ -5,26 +5,50 @@ info:
   description: 독후감 관리 API
 servers:
   - url: https://read-log.onrender.com
+security:
+  - bearerAuth: [] # 기본적으로 모든 엔드포인트에 JWT 인증 적용. 필요 없는 경우 재정의
 paths:
   /auth/register:
     post:
       summary: 회원가입
+      operationId: registerUser
+      security: [] # 이 엔드포인트는 인증이 필요 없음
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/User"
+              $ref: "#/components/schemas/RegisterRequest"
       responses:
         201:
           description: 회원가입 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ok"
+                  data:
+                    $ref: "#/components/schemas/User"
         400:
           description: 유효성 검사 실패
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         500:
           description: 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /auth/login:
     post:
       summary: 로그인
+      operationId: loginUser
+      security: [] # 이 엔드포인트는 인증이 필요 없음
       requestBody:
         required: true
         content:
@@ -33,140 +57,491 @@ paths:
               $ref: "#/components/schemas/LoginRequest"
       responses:
         200:
-          description: 로그인 성공
+          description: 로그인 성공. Access Token은 응답 바디에, Refresh Token은 쿠키에 설정됩니다.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: refreshToken=eyJhbGciOiJIUzI1Ni...; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800000
+              description: Refresh Token이 포함된 Set-Cookie 헤더
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ok"
+                  accessToken:
+                    type: string
+                    description: 인증에 사용될 Access Token
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
         401:
-          description: 인증 실패
+          description: 인증 실패 (유효하지 않은 이메일 또는 비밀번호)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         500:
           description: 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /auth/logout:
     post:
       summary: 로그아웃
+      operationId: logoutUser
+      security:
+        - bearerAuth: [] # 로그아웃은 인증된 사용자만 가능하다고 가정
       responses:
         200:
-          description: 로그아웃 성공
+          description: 로그아웃 성공 (Refresh Token 쿠키가 삭제됩니다.)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Logged out"
         401:
           description: 인증 실패
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         500:
           description: 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /auth/token:
     post:
-      summary: 토큰 생성
+      summary: Access Token 갱신 (Refresh Token 사용)
+      operationId: refreshAccessToken
+      description: Refresh Token은 요청 쿠키에 포함되어야 합니다.
+      security: [] # 토큰 갱신은 Refresh Token만으로 이루어지므로 Access Token 인증은 필요 없음
+      responses:
+        200:
+          description: Access Token 갱신 성공
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: refreshToken=eyJhbGciOiJIUzI1Ni...; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800000
+              description: 갱신된 Refresh Token이 포함된 Set-Cookie 헤더
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                    description: 새로 발급된 Access Token
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        401:
+          description: 리프레시 토큰이 없거나 유효하지 않음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: 사용자를 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        500:
+          description: 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /users/me:
+    get:
+      summary: 내 정보 가져오기
+      operationId: getMyProfile
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: 성공적으로 내 정보를 가져옴
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ok"
+                  data:
+                    $ref: "#/components/schemas/User"
+        401:
+          description: 인증 실패 (Access Token 누락 또는 유효하지 않음)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: 사용자를 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        500:
+          description: 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /users/profile:
+    patch:
+      summary: 프로필 업데이트
+      operationId: updateProfile
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data: # 파일 업로드를 포함하므로 multipart/form-data 사용
             schema:
-              $ref: "#/components/schemas/TokenRequest"
+              $ref: "#/components/schemas/UpdateProfileRequest"
       responses:
         200:
-          description: 토큰 생성 성공
+          description: 프로필 업데이트 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ok"
+                  data:
+                    $ref: "#/components/schemas/User"
         401:
           description: 인증 실패
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: 유효하지 않은 사용자 또는 프로필을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         500:
           description: 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /logs:
     get:
       summary: 공개된 로그 목록 가져오기
+      operationId: getPublicLogs
+      security: [] # 이 엔드포인트는 인증이 필요 없음
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: 페이지 번호
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: 페이지당 로그 수
       responses:
         200:
           description: 성공적으로 로그 목록을 가져옴
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogListResponse"
         500:
           description: 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
     post:
       summary: 로그 작성
+      operationId: createLog
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data: # 파일 업로드를 포함하므로 multipart/form-data 사용
             schema:
               $ref: "#/components/schemas/LogRequest"
       responses:
         201:
           description: 로그 작성 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ok"
+                  data:
+                    $ref: "#/components/schemas/Log"
         401:
           description: 인증 실패
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         500:
           description: 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /logs/me:
+    get:
+      summary: 내 독후감 목록 가져오기
+      operationId: getMyLogs
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: 페이지 번호
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: 페이지당 로그 수
+      responses:
+        200:
+          description: 내 독후감 목록 가져오기 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogListResponse"
+        401:
+          description: 인증 실패
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        500:
+          description: 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /logs/{logId}:
     get:
       summary: 특정 로그 가져오기
+      operationId: getLogById
+      security:
+        - bearerAuth: [] # 공개 로그 접근은 인증 필요 없지만, 비공개 로그 접근을 위해 Access Token 인증 필요
       parameters:
         - name: logId
           in: path
           required: true
           schema:
             type: integer
+            format: int64
+          description: 로그 ID
       responses:
         200:
           description: 성공적으로 로그를 가져옴
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ok"
+                  data:
+                    $ref: "#/components/schemas/Log"
+        401:
+          description: 비공개 로그에 접근 시 인증 필요
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        403:
+          description: 비공개 로그에 접근할 수 없음 (권한 없음)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         404:
           description: 로그를 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         500:
           description: 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
     put:
       summary: 특정 로그 수정
+      operationId: updateLogById
+      security:
+        - bearerAuth: []
       parameters:
         - name: logId
           in: path
           required: true
           schema:
             type: integer
+            format: int64
+          description: 수정할 로그 ID
       requestBody:
         required: true
         content:
-          application/json:
+          application/json: # 이미지 URL이 string 배열로 들어오므로 application/json 사용
             schema:
-              $ref: "#/components/schemas/LogRequest"
+              $ref: "#/components/schemas/LogUpdateRequest"
       responses:
         200:
           description: 로그 수정 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "로그 수정 성공"
+                  data:
+                    $ref: "#/components/schemas/Log"
         401:
           description: 인증 실패
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         404:
-          description: 로그를 찾을 수 없음
+          description: 로그를 찾을 수 없거나 수정 권한 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         500:
           description: 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
     delete:
       summary: 특정 로그 삭제
+      operationId: deleteLogById
+      security:
+        - bearerAuth: []
       parameters:
         - name: logId
           in: path
           required: true
           schema:
             type: integer
+            format: int64
+          description: 삭제할 로그 ID
       responses:
         204:
-          description: 로그 삭제 성공
+          description: 로그 삭제 성공 (콘텐츠 없음)
         401:
           description: 인증 실패
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         403:
           description: 삭제 권한 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         500:
           description: 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /logs/{logId}/comments:
     get:
       summary: 특정 로그의 댓글 가져오기
+      operationId: getCommentsByLogId
+      security: [] # 댓글 목록 가져오기는 인증이 필요 없음
       parameters:
         - name: logId
           in: path
           required: true
           schema:
             type: integer
+            format: int64
+          description: 댓글을 가져올 로그 ID
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: 페이지 번호
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: 페이지당 댓글 수
       responses:
         200:
           description: 성공적으로 댓글 목록을 가져옴
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentListResponse"
         404:
           description: 로그를 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         500:
           description: 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
     post:
       summary: 특정 로그에 댓글 작성
+      operationId: createComment
+      security:
+        - bearerAuth: []
       parameters:
         - name: logId
           in: path
           required: true
           schema:
             type: integer
+            format: int64
+          description: 댓글을 작성할 로그 ID
       requestBody:
         required: true
         content:
@@ -176,24 +551,55 @@ paths:
       responses:
         201:
           description: 댓글 작성 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ok"
+                  data:
+                    $ref: "#/components/schemas/Comment"
+        401:
+          description: 인증 실패
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         404:
           description: 로그를 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         500:
           description: 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /logs/{logId}/comments/{commentId}:
     patch:
       summary: 특정 댓글 수정
+      operationId: updateComment
+      security:
+        - bearerAuth: []
       parameters:
         - name: logId
           in: path
           required: true
           schema:
             type: integer
+            format: int64
+          description: 댓글이 속한 로그 ID
         - name: commentId
           in: path
           required: true
           schema:
             type: integer
+            format: int64
+          description: 수정할 댓글 ID
       requestBody:
         required: true
         content:
@@ -203,53 +609,108 @@ paths:
       responses:
         200:
           description: 댓글 수정 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "댓글 수정 성공"
+                  data:
+                    $ref: "#/components/schemas/Comment"
         400:
-          description: 댓글이 해당 독후감에 속하지 않습니다.
+          description: 댓글이 해당 독후감에 속하지 않음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         403:
-          description: 수정 권한이 없습니다.
+          description: 수정 권한이 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         404:
-          description: 해당 댓글을 찾을 수 없습니다.
+          description: 해당 댓글을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         500:
           description: 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
     delete:
       summary: 특정 댓글 삭제
+      operationId: deleteComment
+      security:
+        - bearerAuth: []
       parameters:
         - name: logId
           in: path
           required: true
           schema:
             type: integer
+            format: int64
+          description: 댓글이 속한 로그 ID
         - name: commentId
           in: path
           required: true
           schema:
             type: integer
+            format: int64
+          description: 삭제할 댓글 ID
       responses:
         204:
-          description: 댓글 삭제 성공
+          description: 댓글 삭제 성공 (콘텐츠 없음)
         403:
-          description: 삭제 권한이 없습니다.
+          description: 삭제 권한이 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         404:
-          description: 댓글을 찾을 수 없습니다.
+          description: 댓글을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         500:
           description: 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Access Token (JWT)을 `Authorization: Bearer <token>` 형태로 전달합니다.
   schemas:
     User:
       type: object
       properties:
         id:
           type: integer
+          format: int64
           example: 1
         email:
           type: string
+          format: email
           example: user@example.com
-        password:
-          type: string
-          example: Password123!
         username:
           type: string
           example: UserName
+        profile:
+          type: string
+          nullable: true
+          example: "profile_image.jpg"
         createdAt:
           type: string
           format: date-time
@@ -258,39 +719,270 @@ components:
           type: string
           format: date-time
           example: "2025-07-03T12:00:00Z"
+      required:
+        - id
+        - email
+        - username
+        - createdAt
+        - updatedAt
+    RegisterRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: newuser@example.com
+        username:
+          type: string
+          example: NewUser
+        password:
+          type: string
+          format: password
+          example: NewPassword123!
+      required:
+        - email
+        - username
+        - password
     LoginRequest:
       type: object
       properties:
         email:
           type: string
+          format: email
           example: user@example.com
         password:
           type: string
+          format: password
           example: Password123!
-    TokenRequest:
+      required:
+        - email
+        - password
+    UpdateProfileRequest:
       type: object
       properties:
-        refreshToken:
+        password:
           type: string
-          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          format: password
+          nullable: true
+          example: NewPassword123!
+        profile:
+          type: string
+          format: binary # 파일 업로드 필드
+          description: 업로드할 프로필 이미지 파일
+      oneOf: # password 또는 profile 중 하나 이상 필요
+        - required: [password]
+        - required: [profile]
+    Log:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        title:
+          type: string
+          example: 독후감 제목입니다.
+        content:
+          type: string
+          example: 독후감 내용입니다. 읽은 책에 대한 감상과 생각을 담습니다.
+        bookAuthor:
+          type: string
+          example: 저자 이름
+        bookImgUrl:
+          type: array
+          items:
+            type: string
+          example: ["image1.jpg", "image2.jpg"]
+        rating:
+          type: integer
+          example: 5
+          minimum: 1
+          maximum: 5
+        userId:
+          type: integer
+          format: int64
+          example: 10
+        isPublic:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-07-03T12:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2025-07-03T12:00:00Z"
+      required:
+        - id
+        - title
+        - content
+        - bookAuthor
+        - rating
+        - userId
+        - isPublic
+        - createdAt
+        - updatedAt
     LogRequest:
       type: object
       properties:
         title:
           type: string
-          example: 독후감 제목
+          example: 새로운 독후감 제목
         content:
           type: string
-          example: 독후감 내용
+          example: 새로운 독후감 내용입니다.
         bookAuthor:
           type: string
-          example: 저자 이름
+          example: 새로운 저자
         rating:
           type: integer
+          example: 4
+          minimum: 1
+          maximum: 5
+        isPublic:
+          type: string # "true" 또는 "false" 문자열로 받으므로 string으로 명시
+          example: "true"
+        # bookImgUrl (이미지 파일은 requestBody의 type: "string", format: "binary"로 처리)
+      required:
+        - title
+        - content
+        - bookAuthor
+        - rating
+        - isPublic
+    LogUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          example: 수정된 독후감 제목
+        content:
+          type: string
+          example: 수정된 독후감 내용입니다.
+        bookAuthor:
+          type: string
+          example: 수정된 저자
+        bookImgUrl:
+          type: array
+          items:
+            type: string
+          example: ["updated_image.jpg"]
+        rating:
+          type: integer
+          example: 4
+          minimum: 1
+          maximum: 5
+        isPublic:
+          type: boolean # 업데이트 요청은 boolean으로 받을 수도 있으므로 boolean으로 명시
+          example: true
+      required:
+        - title
+        - content
+        - bookAuthor
+        - rating
+        - isPublic # 여기서는 필수로 두되, 부분 업데이트의 경우 required를 제거하거나 patch에만 다르게 적용
+    LogListResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "log 목록 가져오기 성공"
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Log"
+        pagination:
+          type: object
+          properties:
+            total:
+              type: integer
+              example: 100
+            page:
+              type: integer
+              example: 1
+            totalPages:
+              type: integer
+              example: 10
+            limit:
+              type: integer
+              example: 10
+            hasMore:
+              type: boolean
+              example: true
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        content:
+          type: string
+          example: 이 독후감 정말 좋네요!
+        userId:
+          type: integer
+          format: int64
+          example: 1
+        logId:
+          type: integer
+          format: int64
           example: 5
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-07-03T12:05:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2025-07-03T12:05:00Z"
+      required:
+        - id
+        - content
+        - userId
+        - logId
+        - createdAt
+        - updatedAt
     CommentRequest:
       type: object
       properties:
         content:
           type: string
-          example: 댓글 내용
+          example: 새로운 댓글 내용입니다.
+      required:
+        - content
+    CommentListResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "댓글 목록 가져오기 성공"
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Comment"
+        pagination:
+          type: object
+          properties:
+            total:
+              type: integer
+              example: 50
+            page:
+              type: integer
+              example: 1
+            totalPages:
+              type: integer
+              example: 5
+            limit:
+              type: integer
+              example: 10
+            hasMore:
+              type: boolean
+              example: true
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "서버 내부 오류가 발생했습니다."
+      required:
+        - message
