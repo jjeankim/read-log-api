@@ -1,0 +1,132 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  email         String    @unique
+  passwordHash  String    
+  name          String
+  createdAt     DateTime  @default(now())
+
+  bookLogs  BookLog[]
+  comments  Comment[]
+  likes     Like[]
+  bookmarks Bookmark[]
+  followers Follow[]   @relation("followers")
+  followings Follow[]  @relation("followings")
+}
+
+model BookLog {
+  id          Int         @id @default(autoincrement())
+  userId      Int
+  user        User        @relation(fields: [userId], references: [id])
+
+  bookTitle   String
+  bookAuthor  String
+  bookThumbnail String?   // optional
+
+  rating      Int?        // 1~5
+  status      ReadingStatus @default(DONE)
+  visibility  Visibility    @default(PUBLIC)
+
+  content     String
+  readDate    DateTime?
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  comments    Comment[]
+  tags        BookLogTag[]
+  likes       Like[]
+  bookmarks   Bookmark[]
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  bookLogId Int
+
+  user      User     @relation(fields: [userId], references: [id])
+  bookLog   BookLog  @relation(fields: [bookLogId], references: [id])
+
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tag {
+  id        Int          @id @default(autoincrement())
+  name      String       @unique
+  bookLogs  BookLogTag[]
+}
+
+model BookLogTag {
+  bookLogId Int
+  tagId     Int
+
+  bookLog   BookLog  @relation(fields: [bookLogId], references: [id])
+  tag       Tag      @relation(fields: [tagId], references: [id])
+
+  @@id([bookLogId, tagId])
+}
+
+model Like {
+  userId    Int
+  bookLogId Int
+
+  user      User    @relation(fields: [userId], references: [id])
+  bookLog   BookLog @relation(fields: [bookLogId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@id([userId, bookLogId])
+}
+
+model Bookmark {
+  userId    Int
+  bookLogId Int
+
+  user      User    @relation(fields: [userId], references: [id])
+  bookLog   BookLog @relation(fields: [bookLogId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@id([userId, bookLogId])
+}
+
+model Follow {
+  followerId Int
+  followingId Int
+
+  follower User @relation("followers", fields: [followerId], references: [id])
+  following User @relation("followings", fields: [followingId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@id([followerId, followingId])
+}
+
+enum ReadingStatus {
+  READING
+  DONE
+  WANT_TO_READ
+}
+
+enum Visibility {
+  PUBLIC
+  FOLLOWERS
+  PRIVATE
+}
