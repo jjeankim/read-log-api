@@ -1,0 +1,16 @@
+import { Router } from "express"
+import { authMiddleware } from "../../middleware/auth.middleware"
+import { createLog, deleteLog, getAllLogs, getLog, getMyLogs, updateLog } from "./log.controller"
+
+
+
+
+export const logRouter = Router()
+
+logRouter.post("/",authMiddleware, createLog)
+logRouter.get("/my",authMiddleware,getMyLogs);
+logRouter.get("/:logId",authMiddleware,getLog)
+logRouter.put("/:logId",authMiddleware,updateLog)
+logRouter.delete("/:logId",authMiddleware,deleteLog)
+
+logRouter.get("/",getAllLogs)
