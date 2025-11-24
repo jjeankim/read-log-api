@@ -101,19 +101,22 @@ export const deleteLog = async (logId: number, userId: number) => {
   return prisma.bookLog.delete({ where: { id: logId } });
 };
 
-
 // 공개 BookLog 목록 조회
-export const getAllLogs = async() => {
+export const getAllLogs = async () => {
   return prisma.bookLog.findMany({
-    where:{isPublic:true},
-    orderBy:{createdAt:"desc"},
-    include:{
-      user:{
-        select:{id: true, name:true}
+    where: { isPublic: true },
+    orderBy: { createdAt: "desc" },
+    include: {
+      user: {
+        select: { id: true, name: true },
       },
-      likes:true,
-      bookmarks:true,
-      comments:true
-    }
-  })
-}
+      _count: {
+        select: {
+          likes: true,
+          comments: true,
+        },
+      },
+      bookmarks: true,
+    },
+  });
+};
