@@ -13,8 +13,17 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const loginUser = async (req: Request, res: Response) => {
   try {
-    const token = await userService.loginUser(req.body);
-    res.json({ token });
+    const { accessToken, refreshToken } = await userService.loginUser(req.body);
+
+    res.cookie("refreshToken", refreshToken),
+      {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        maxAge: 1000 * 60 * 24 * 7,
+      };
+      
+    res.json({ accessToken });
   } catch (error: any) {
     res.status(400).json({ message: error.message });
   }

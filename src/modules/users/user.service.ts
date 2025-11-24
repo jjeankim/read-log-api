@@ -14,6 +14,20 @@ interface LoginInput {
   password: string;
 }
 
+// AccessToken 생성 함수
+const createAccessToken = (user: { id: number; email: string }) => {
+  return jwt.sign({ id: user.id, email: user.email }, env.JWT_SECRET, {
+    expiresIn: "15m",
+  });
+};
+
+// RefreshToken 생성 함수
+const createRefreshToken = (user: { id: number; email: string }) => {
+  return jwt.sign({ id: user.id, email: user.email }, env.JWT_REFRESH_SECRET, {
+    expiresIn: "7d",
+  });
+};
+
 // user 생성
 export const createUser = async (data: CreateUserInput) => {
   const { email, password, name } = data;
@@ -63,16 +77,11 @@ export const loginUser = async (data: LoginInput) => {
     throw new Error("비밀번호가 틀렸습니다.");
   }
 
-  //jwt 토큰 발급
-  const token = jwt.sign(
-    {
-      id: user.id,
-      email: user.email,
-    },
-    env.JWT_SECRET,
-    { expiresIn: "7d" }
-  );
-  return token;
+  const accessToken = createAccessToken(user);
+
+  const refreshToken = createRefreshToken(user);
+
+  return { accessToken, refreshToken };
 };
 
 // 내 프로필 조회

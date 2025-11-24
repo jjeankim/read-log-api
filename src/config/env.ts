@@ -14,5 +14,6 @@ export const env = {
   DIRECT_URL : process.env.DIRECT_URL,
 
   JWT_SECRET: required("JWT_SCRET", process.env.JWT_SECRET),
+  JWT_REFRESH_SECRET: required("JWT_REFRESH_SECRET",process.env.JWT_REFRESH_SECRET),
   PORT: Number(process.env.PORT) || 4000,
 };
