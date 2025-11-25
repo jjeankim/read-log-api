@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { Request, Response } from "express";
 import { UserRequest } from "../../types/expressUserRequest";
 import * as logService from "../logs/log.service";
 
@@ -15,8 +15,8 @@ export const createLog = async (req: UserRequest, res: Response) => {
 export const getMyLogs = async (req: UserRequest, res: Response) => {
   try {
     const userId = req.user!.id;
-    const logs = await logService.getLogsByUser(userId)
-    res.json(logs)
+    const logs = await logService.getLogsByUser(userId);
+    res.json(logs);
   } catch (error: any) {
     res.status(400).json({ message: error.message });
   }
@@ -53,13 +53,28 @@ export const deleteLog = async (req: UserRequest, res: Response) => {
   } catch (error) {}
 };
 
-
 // 공개 로그 목록 조회
-export const getAllLogs = async(req:UserRequest, res:Response)=> {
+export const getAllLogs = async (req: UserRequest, res: Response) => {
   try {
     const logs = await logService.getAllLogs();
-    res.json(logs)
-  } catch (error:any) {
-    res.status(400).json({message:error.message})
+    res.json(logs);
+  } catch (error: any) {
+    res.status(400).json({ message: error.message });
   }
-}
+};
+
+// 검색 로그 조회
+export const searchLogs = async (req: Request, res: Response) => {
+  try {
+    const query = req.query.query as string;
+
+    if (!query || !query.trim()) {
+      return res.status(400).json({ message: "검색어가 없습니다." });
+    }
+
+    const result = await logService.searchLogs(query.trim());
+    return res.json(result);
+  } catch (error: any) {
+    return res.status(500).json({ message: error.message });
+  }
+};

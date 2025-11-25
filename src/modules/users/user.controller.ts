@@ -22,7 +22,7 @@ export const loginUser = async (req: Request, res: Response) => {
         sameSite: "none",
         maxAge: 1000 * 60 * 24 * 7,
       };
-      
+
     res.json({ accessToken });
   } catch (error: any) {
     res.status(400).json({ message: error.message });

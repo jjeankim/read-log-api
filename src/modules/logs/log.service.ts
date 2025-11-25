@@ -120,3 +120,25 @@ export const getAllLogs = async () => {
     },
   });
 };
+
+// 검색 목록 조회
+export const searchLogs = async (query: string) => {
+  return prisma.bookLog.findMany({
+    where: {
+      OR: [
+        { title: { contains: query } },
+        { author: { contains: query } },
+        { content: { contains: query } },
+      ],
+    },
+    orderBy: { createdAt: "desc" },
+    include:{
+      _count:{
+        select:{
+          likes:true,
+          comments:true,
+        }
+      }
+    }
+  });
+};
