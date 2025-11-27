@@ -64,6 +64,12 @@ export const getLogById = async (logId: number) => {
     where: { id: logId },
     include: {
       comments: { include: { user: true } },
+      _count: {
+        select: {
+          likes: true,
+          comments: true,
+        },
+      },
     },
   });
 };
@@ -102,10 +108,22 @@ export const deleteLog = async (logId: number, userId: number) => {
 };
 
 // 공개 BookLog 목록 조회
-export const getAllLogs = async () => {
+export const getAllLogs = async (sort:"popular"|"recent"|"recommend"="recent") => {
+  let orderBy: any = {createdAt: "desc"}
+
+
+  if(sort === "popular") {
+    orderBy = {rating:"desc"}
+  }
+
+  if(sort === "recommend") {
+    orderBy = {likes:{
+      _count:"desc",
+    }}
+  }
   return prisma.bookLog.findMany({
     where: { isPublic: true },
-    orderBy: { createdAt: "desc" },
+    orderBy,
     include: {
       user: {
         select: { id: true, name: true },

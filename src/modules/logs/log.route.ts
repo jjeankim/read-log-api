@@ -16,7 +16,7 @@ logRouter.get("/search",searchLogs)
 
 logRouter.post("/", authMiddleware, createLog);
 logRouter.get("/my", authMiddleware, getMyLogs);
-logRouter.get("/:logId", authMiddleware, getLog);
+logRouter.get("/:logId", getLog);
 logRouter.put("/:logId", authMiddleware, updateLog);
 logRouter.delete("/:logId", authMiddleware, deleteLog);
 

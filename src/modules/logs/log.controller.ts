@@ -24,7 +24,7 @@ export const getMyLogs = async (req: UserRequest, res: Response) => {
 
 export const getLog = async (req: UserRequest, res: Response) => {
   try {
-    const logId = Number(req.params.id);
+    const logId = Number(req.params.logId);
     const log = await logService.getLogById(logId);
     res.json(log);
   } catch (error: any) {
@@ -56,7 +56,8 @@ export const deleteLog = async (req: UserRequest, res: Response) => {
 // 공개 로그 목록 조회
 export const getAllLogs = async (req: UserRequest, res: Response) => {
   try {
-    const logs = await logService.getAllLogs();
+    const sort = req.query.sort as "popular"| "recent"| "recommend"
+    const logs = await logService.getAllLogs(sort);
     res.json(logs);
   } catch (error: any) {
     res.status(400).json({ message: error.message });

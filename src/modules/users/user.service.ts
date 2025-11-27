@@ -17,7 +17,7 @@ interface LoginInput {
 // AccessToken 생성 함수
 const createAccessToken = (user: { id: number; email: string }) => {
   return jwt.sign({ id: user.id, email: user.email }, env.JWT_SECRET, {
-    expiresIn: "15m",
+    expiresIn: "1d",
   });
 };
 
