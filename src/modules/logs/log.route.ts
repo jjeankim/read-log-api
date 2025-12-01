@@ -4,15 +4,19 @@ import {
   createLog,
   deleteLog,
   getAllLogs,
+  getHeatmapStats,
   getLog,
+  getMonthLogsStats,
   getMyLogs,
+  getSummaryStats,
+  getWeeklyLogStats,
   searchLogs,
   updateLog,
 } from "./log.controller";
 
 export const logRouter = Router();
 
-logRouter.get("/search",searchLogs)
+logRouter.get("/search", searchLogs);
 
 logRouter.post("/", authMiddleware, createLog);
 logRouter.get("/my", authMiddleware, getMyLogs);
@@ -22,3 +26,7 @@ logRouter.delete("/:logId", authMiddleware, deleteLog);
 
 logRouter.get("/", getAllLogs);
 
+logRouter.get("/stats/monthly", authMiddleware, getMonthLogsStats);
+logRouter.get("/stats/summary", authMiddleware, getSummaryStats);
+logRouter.get("/stats/weekly", authMiddleware, getWeeklyLogStats);
+logRouter.get("/stats/heatmap", authMiddleware, getHeatmapStats);

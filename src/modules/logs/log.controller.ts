@@ -56,7 +56,7 @@ export const deleteLog = async (req: UserRequest, res: Response) => {
 // 공개 로그 목록 조회
 export const getAllLogs = async (req: UserRequest, res: Response) => {
   try {
-    const sort = req.query.sort as "popular"| "recent"| "recommend"
+    const sort = req.query.sort as "popular" | "recent" | "recommend";
     const logs = await logService.getAllLogs(sort);
     res.json(logs);
   } catch (error: any) {
@@ -77,5 +77,52 @@ export const searchLogs = async (req: Request, res: Response) => {
     return res.json(result);
   } catch (error: any) {
     return res.status(500).json({ message: error.message });
+  }
+};
+
+// 월별 통계
+export const getMonthLogsStats = async (req: UserRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const stats = await logService.getMonthLogsStats(userId);
+    return res.json(stats);
+  } catch (error: any) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// 통계 요약
+export const getSummaryStats = async (req: UserRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const summary = await logService.getSummary(userId);
+    return res.json(summary);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "요약 통계 조회 실패" });
+  }
+};
+
+// 요일 통계
+export const getWeeklyLogStats = async (req: UserRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const stats = await logService.getWeeklyLogStats(userId);
+    return res.json(stats);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "요일별 통계 조회 실패" });
+  }
+};
+
+// 연간 히트맵 통계
+export const getHeatmapStats = async (req: UserRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const stats = await logService.getHeatmapStats(userId);
+    return res.json(stats);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "히트맵 통계 조회 실패" });
   }
 };

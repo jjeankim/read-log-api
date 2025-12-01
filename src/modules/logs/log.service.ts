@@ -108,18 +108,21 @@ export const deleteLog = async (logId: number, userId: number) => {
 };
 
 // 공개 BookLog 목록 조회
-export const getAllLogs = async (sort:"popular"|"recent"|"recommend"="recent") => {
-  let orderBy: any = {createdAt: "desc"}
+export const getAllLogs = async (
+  sort: "popular" | "recent" | "recommend" = "recent"
+) => {
+  let orderBy: any = { createdAt: "desc" };
 
-
-  if(sort === "popular") {
-    orderBy = {rating:"desc"}
+  if (sort === "popular") {
+    orderBy = { rating: "desc" };
   }
 
-  if(sort === "recommend") {
-    orderBy = {likes:{
-      _count:"desc",
-    }}
+  if (sort === "recommend") {
+    orderBy = {
+      likes: {
+        _count: "desc",
+      },
+    };
   }
   return prisma.bookLog.findMany({
     where: { isPublic: true },
@@ -150,13 +153,93 @@ export const searchLogs = async (query: string) => {
       ],
     },
     orderBy: { createdAt: "desc" },
-    include:{
-      _count:{
-        select:{
-          likes:true,
-          comments:true,
-        }
+    include: {
+      _count: {
+        select: {
+          likes: true,
+          comments: true,
+        },
+      },
+    },
+  });
+};
+
+// 월별 통계 (월별 작성한 로그 수)
+export const getMonthLogsStats = async (userId: number) => {
+  const stats = await prisma.$queryRaw<{ month: string; count: number }[]>`
+  SELECT
+    TO_CHAR("readDate",'MM') AS month,
+    COUNT(*)::int AS count
+  FROM "BookLog"
+  WHERE "userId" = ${userId}
+  GROUP BY month
+  ORDER BY month
+  `;
+
+  return stats;
+};
+
+// 통계 요약
+export const getSummary = async (userId: number) => {
+  const totalLogs = await prisma.bookLog.count({
+    where: { userId },
+  });
+
+  const monthlyLogs = await prisma.bookLog.count({
+    where:{
+      userId,
+      readDate:{
+        gte: new Date(new Date().getFullYear(), new Date().getMonth(),1),
       }
     }
-  });
+  })
+
+  const avgRatingResult = await prisma.bookLog.aggregate({
+    where:{ userId},
+    _avg:{rating:true},
+  })
+
+  return {
+    totalLogs,
+    monthlyLogs,
+    avgRating: avgRatingResult._avg.rating || 0
+  }
+};
+
+
+// 요일 통계
+export const getWeeklyLogStats = async (userId: number) => {
+  return prisma.$queryRawUnsafe<
+    { weekday: string; count: number }[]
+  >(
+    `
+      SELECT 
+        TO_CHAR("readDate", 'Dy') AS weekday,
+        COUNT(*)::int AS count
+      FROM "BookLog"
+      WHERE "userId" = $1
+      GROUP BY weekday
+      ORDER BY weekday;
+    `,
+    userId
+  );
+};
+
+// heatmap
+export const getHeatmapStats = async (userId: number) => {
+  return prisma.$queryRawUnsafe<
+    { date: string; count: number }[]
+  >(
+    `
+      SELECT 
+        TO_CHAR("readDate", 'YYYY-MM-DD') AS date,
+        COUNT(*)::int AS count
+      FROM "BookLog"
+      WHERE "userId" = $1
+        AND EXTRACT(YEAR FROM "readDate") = EXTRACT(YEAR FROM NOW())
+      GROUP BY date
+      ORDER BY date;
+    `,
+    userId
+  );
 };
